@@ -20,6 +20,7 @@ MODEL = "llama-3.1-8b-instant"
 response = client.chat.completions.create(
     model=MODEL,
     messages=st.session_state.messages
+)
 
 st.write("Streamlit loves LLMs! 🤖 [Build your own chat app](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps) in minutes, then make it powerful by adding images, dataframes, or even input widgets to the chat.")
 
