@@ -3,3 +3,4 @@ groq
 BeautifulSoup
 PdfReader
 TfidfVectorizer
+cosine_similarity
