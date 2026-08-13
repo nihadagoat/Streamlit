@@ -286,15 +286,15 @@ def render_calculator_page():
 
     def append_val(val):
         st.session_state.calc_input += str(val)
-        st.rerun()
+  
 
     def clear_val():
         st.session_state.calc_input = ""
-        st.rerun()
+    
 
     def backspace():
         st.session_state.calc_input = st.session_state.calc_input[:-1]
-        st.rerun()
+        
 
     st.subheader("Mathematical Keyboard")
     
@@ -345,7 +345,6 @@ def render_calculator_page():
     solve_clicked = r6_col4.button("=", type="primary", use_container_width=True)
 
     st.divider()
-    st.rerun()
 
     if solve_clicked or st.button("Calculate Result", type="primary"):
         if not st.session_state.calc_input:
