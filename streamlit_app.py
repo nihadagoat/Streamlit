@@ -1,6 +1,8 @@
 import re
-import time
 import math
+import time
+import json
+import os
 import requests
 import streamlit as st
 from bs4 import BeautifulSoup
@@ -9,6 +11,24 @@ from pypdf import PdfReader
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+DB_FILE = "users_db.json"
+
+
+def load_users():
+    if os.path.exists(DB_FILE):
+        try:
+            with open(DB_FILE, "r") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+
+def save_users(db):
+    with open(DB_FILE, "w") as f:
+        json.dump(db, f, indent=4)
+
+
 API_KEY = st.secrets["GROQ_API_KEY"]
 client = Groq(api_key=API_KEY)
 MODEL = "llama-3.1-8b-instant"
@@ -16,7 +36,7 @@ MODEL = "llama-3.1-8b-instant"
 st.set_page_config(page_title="Browser Buddy", page_icon="🤖", layout="wide")
 
 if "users_db" not in st.session_state:
-    st.session_state.users_db = {}
+    st.session_state.users_db = load_users()
 
 if "current_user" not in st.session_state:
     st.session_state.current_user = None
@@ -52,6 +72,7 @@ def show_auth_page():
         login_pass = st.text_input("Password", type="password", key="login_pass")
         
         if st.button("Log In", type="primary", use_container_width=True):
+            st.session_state.users_db = load_users()
             if login_user in st.session_state.users_db and st.session_state.users_db[login_user]["password"] == login_pass:
                 st.session_state.current_user = login_user
                 st.success(f"Welcome back, {login_user}!")
@@ -65,6 +86,7 @@ def show_auth_page():
         signup_pass = st.text_input("Password", type="password", key="signup_pass")
         
         if st.button("Create Account", type="primary", use_container_width=True):
+            st.session_state.users_db = load_users()
             if not signup_user or not signup_pass:
                 st.warning("Please fill out all fields.")
             elif signup_user in st.session_state.users_db:
@@ -74,8 +96,9 @@ def show_auth_page():
                     "password": signup_pass,
                     "messages": [{"role": "assistant", "content": f"Welcome {signup_user}! Let's start chatting! 👇"}]
                 }
+                save_users(st.session_state.users_db)
                 st.session_state.current_user = signup_user
-                st.success("Account created successfully!")
+                st.success("Account created and saved successfully!")
                 st.rerun()
 
 
@@ -164,6 +187,8 @@ def render_chatbot_page():
 
     if prompt := st.chat_input("Ask anything..."):
         user_data["messages"].append({"role": "user", "content": prompt})
+        save_users(st.session_state.users_db)
+        
         with st.chat_message("user"):
             st.markdown(prompt)
 
@@ -186,6 +211,7 @@ def render_chatbot_page():
             message_placeholder.markdown(full_response)
             
         user_data["messages"].append({"role": "assistant", "content": full_response})
+        save_users(st.session_state.users_db)
 
 
 # --- PAGE 2: SEPARATE RAG KNOWLEDGE BASE ---
