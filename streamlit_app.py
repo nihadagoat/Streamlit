@@ -281,20 +281,22 @@ def render_calculator_page():
     st.title("Scientific Calculator 🧮")
     st.caption("Enter math expressions via typing or using the mathematical keyboard buttons below.")
 
-    expr = st.text_input("Expression:", value=st.session_state.calc_input, key="calc_display")
-    st.session_state.calc_input = expr
+    # Initialize key in session state
+    if "calc_display" not in st.session_state:
+        st.session_state.calc_display = ""
 
+    # Callbacks update st.session_state.calc_display directly
     def append_val(val):
-        st.session_state.calc_input += str(val)
-  
+        st.session_state.calc_display += str(val)
 
     def clear_val():
-        st.session_state.calc_input = ""
-    
+        st.session_state.calc_display = ""
 
     def backspace():
-        st.session_state.calc_input = st.session_state.calc_input[:-1]
-        
+        st.session_state.calc_display = st.session_state.calc_display[:-1]
+
+    # Directly bind text input to session state key
+    st.text_input("Expression:", key="calc_display")
 
     st.subheader("Mathematical Keyboard")
     
@@ -347,7 +349,8 @@ def render_calculator_page():
     st.divider()
 
     if solve_clicked or st.button("Calculate Result", type="primary"):
-        if not st.session_state.calc_input:
+        current_expr = st.session_state.calc_display
+        if not current_expr:
             st.warning("Please enter a mathematical expression.")
         else:
             try:
@@ -364,13 +367,11 @@ def render_calculator_page():
                     "abs": abs,
                 }
                 
-                result = eval(st.session_state.calc_input, {"__builtins__": None}, allowed_scope)
+                result = eval(current_expr, {"__builtins__": None}, allowed_scope)
                 st.subheader("Result")
-                st.success(f"**{st.session_state.calc_input}** = **{result}**")
+                st.success(f"**{current_expr}** = **{result}**")
             except Exception as err:
                 st.error(f"Invalid Expression: {err}")
-
-
 # --- PAGE 4: TEXT HUMANIZER ---
 def render_humanizer_page():
     st.title("Text Humanizer ✍️")
