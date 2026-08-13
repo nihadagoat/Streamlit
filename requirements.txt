@@ -1,6 +1,6 @@
 streamlit
 groq
-BeautifulSoup
-PdfReader
-TfidfVectorizer
-cosine_similarity
+requests
+beautifulsoup4
+pypdf
+scikit-learn
