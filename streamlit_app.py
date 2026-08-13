@@ -9,14 +9,12 @@ from pypdf import PdfReader
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Initialize API and config
 API_KEY = st.secrets["GROQ_API_KEY"]
 client = Groq(api_key=API_KEY)
 MODEL = "llama-3.1-8b-instant"
 
 st.set_page_config(page_title="Browser Buddy", page_icon="🤖", layout="wide")
 
-# Persistent state initialization
 if "users_db" not in st.session_state:
     st.session_state.users_db = {}
 
@@ -33,7 +31,6 @@ if "calc_input" not in st.session_state:
     st.session_state.calc_input = ""
 
 
-# --- AUTHENTICATION SCREEN ---
 def show_auth_page():
     st.title("Browser Buddy 🤖")
     
@@ -87,7 +84,6 @@ if st.session_state.current_user is None:
     st.stop()
 
 
-# --- ISOLATED RAG ENGINE ---
 class RAGSystem:
     def __init__(self, chunk_size=300, overlap=40):
         self.chunk_size = chunk_size
@@ -259,11 +255,9 @@ def render_calculator_page():
     st.title("Scientific Calculator 🧮")
     st.caption("Enter math expressions via typing or using the mathematical keyboard buttons below.")
 
-    # Display Expression Input
     expr = st.text_input("Expression:", value=st.session_state.calc_input, key="calc_display")
     st.session_state.calc_input = expr
 
-    # Helper function to append button text
     def append_val(val):
         st.session_state.calc_input += str(val)
         st.rerun()
@@ -276,10 +270,8 @@ def render_calculator_page():
         st.session_state.calc_input = st.session_state.calc_input[:-1]
         st.rerun()
 
-    # Mathematical Keyboard Layout
     st.subheader("Mathematical Keyboard")
     
-    # Row 1: Trigonometric & Logarithmic
     r1_col1, r1_col2, r1_col3, r1_col4, r1_col5, r1_col6 = st.columns(6)
     r1_col1.button("sin", on_click=append_val, args=("sin(",), use_container_width=True)
     r1_col2.button("cos", on_click=append_val, args=("cos(",), use_container_width=True)
@@ -288,7 +280,6 @@ def render_calculator_page():
     r1_col5.button("ln", on_click=append_val, args=("ln(",), use_container_width=True)
     r1_col6.button("√", on_click=append_val, args=("sqrt(",), use_container_width=True)
 
-    # Row 2: Powers & Constants
     r2_col1, r2_col2, r2_col3, r2_col4, r2_col5, r2_col6 = st.columns(6)
     r2_col1.button("x²", on_click=append_val, args=("**2",), use_container_width=True)
     r2_col2.button("xⁿ", on_click=append_val, args=("**",), use_container_width=True)
@@ -297,7 +288,6 @@ def render_calculator_page():
     r2_col5.button("(", on_click=append_val, args=("(",), use_container_width=True)
     r2_col6.button(")", on_click=append_val, args=(")",), use_container_width=True)
 
-    # Row 3: Numbers 7-9 & Basic Operators
     r3_col1, r3_col2, r3_col3, r3_col4, r3_col5, r3_col6 = st.columns(6)
     r3_col1.button("7", on_click=append_val, args=("7",), use_container_width=True)
     r3_col2.button("8", on_click=append_val, args=("8",), use_container_width=True)
@@ -306,7 +296,6 @@ def render_calculator_page():
     r3_col5.button("DEL", on_click=backspace, use_container_width=True)
     r3_col6.button("CLEAR", on_click=clear_val, use_container_width=True)
 
-    # Row 4: Numbers 4-6 & Multiplication
     r4_col1, r4_col2, r4_col3, r4_col4, r4_col5, r4_col6 = st.columns(6)
     r4_col1.button("4", on_click=append_val, args=("4",), use_container_width=True)
     r4_col2.button("5", on_click=append_val, args=("5",), use_container_width=True)
@@ -315,7 +304,6 @@ def render_calculator_page():
     r4_col5.button("x!", on_click=append_val, args=("factorial(",), use_container_width=True)
     r4_col6.button("abs", on_click=append_val, args=("abs(",), use_container_width=True)
 
-    # Row 5: Numbers 1-3 & Subtraction
     r5_col1, r5_col2, r5_col3, r5_col4, r5_col5, r5_col6 = st.columns(6)
     r5_col1.button("1", on_click=append_val, args=("1",), use_container_width=True)
     r5_col2.button("2", on_click=append_val, args=("2",), use_container_width=True)
@@ -324,7 +312,6 @@ def render_calculator_page():
     r5_col5.write("")
     r5_col6.write("")
 
-    # Row 6: 0, Decimal, Addition & Solve
     r6_col1, r6_col2, r6_col3, r6_col4, r6_col5, r6_col6 = st.columns(6)
     r6_col1.button("0", on_click=append_val, args=("0",), use_container_width=True)
     r6_col2.button(".", on_click=append_val, args=(".",), use_container_width=True)
@@ -333,13 +320,11 @@ def render_calculator_page():
 
     st.divider()
 
-    # Calculation Execution
     if solve_clicked or st.button("Calculate Result", type="primary"):
         if not st.session_state.calc_input:
             st.warning("Please enter a mathematical expression.")
         else:
             try:
-                # Safe evaluation namespace mapping
                 allowed_scope = {
                     "sin": math.sin,
                     "cos": math.cos,
@@ -354,12 +339,47 @@ def render_calculator_page():
                 }
                 
                 result = eval(st.session_state.calc_input, {"__builtins__": None}, allowed_scope)
-                
                 st.subheader("Result")
                 st.success(f"**{st.session_state.calc_input}** = **{result}**")
-                
             except Exception as err:
                 st.error(f"Invalid Expression: {err}")
+
+
+# --- PAGE 4: TEXT HUMANIZER ---
+def render_humanizer_page():
+    st.title("Text Humanizer ✍️")
+    st.caption("Rewrite AI-generated text into natural, varied, human sounding language.")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("Original AI Text")
+        input_text = st.text_area("Paste text here:", height=300, placeholder="Paste AI generated text...")
+        
+        tone = st.selectbox("Tone / Style:", ["Casual & Natural", "Academic / Formal", "Conversational Essay", "Persuasive"])
+        humanize_btn = st.button("Humanize Text", type="primary", use_container_width=True)
+
+    with col2:
+        st.subheader("Humanized Output")
+        if humanize_btn:
+            if not input_text:
+                st.warning("Please paste some text first.")
+            else:
+                system_prompt = (
+                    "You are an expert human writer and editor. Your job is to rewrite the provided text so it sounds completely natural, "
+                    "human, and authentic. Eliminate robotic phrasing, overused AI transitions (like 'in conclusion', 'delve into', 'testament to'), "
+                    "and uniform sentence lengths. Mix short and long sentences, use natural phrasing, and adapt to the requested tone."
+                )
+                
+                messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Tone: {tone}\n\nRewrite this text to sound human:\n{input_text}"}
+                ]
+                
+                with st.spinner("Rewriting text..."):
+                    res = client.chat.completions.create(model=MODEL, messages=messages)
+                    humanized_result = res.choices[0].message.content
+                    st.text_area("Result:", value=humanized_result, height=300)
 
 
 # --- NAVIGATION & SIDEBAR ---
@@ -373,7 +393,8 @@ with st.sidebar:
 page = st.navigation([
     st.Page(render_chatbot_page, title="Standard Chatbot", icon="💬"),
     st.Page(render_rag_page, title="RAG Knowledge Base", icon="📚"),
-    st.Page(render_calculator_page, title="Scientific Calculator", icon="🧮")
+    st.Page(render_calculator_page, title="Scientific Calculator", icon="🧮"),
+    st.Page(render_humanizer_page, title="Text Humanizer", icon="✍️")
 ])
 
 page.run()
