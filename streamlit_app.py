@@ -263,7 +263,7 @@ with st.sidebar:
 page = st.navigation([
     st.Page(render_chatbot_page, title="Standard Chatbot", icon="💬"),
     st.Page(render_rag_page, title="RAG Knowledge Base", icon="📚")
-    st.Page(render_calculator_page, title="Scientific Calculator", icon="🧮")
+    st.Page(render_calculator_page, title="Scientific Calculator", icon="🧮"),
 ])
 
 page.run()
