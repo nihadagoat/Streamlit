@@ -1,6 +1,12 @@
-import streamlit as st
+import re
 import time
+import requests
+import streamlit as st
+from bs4 import BeautifulSoup
 from groq import Groq
+from pypdf import PdfReader
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 API_KEY = st.secrets["GROQ_API_KEY"]
 client = Groq(api_key=API_KEY)
