@@ -29,6 +29,9 @@ if "auth_mode" not in st.session_state:
 if "rag_documents" not in st.session_state:
     st.session_state.rag_documents = []
 
+if "calc_input" not in st.session_state:
+    st.session_state.calc_input = ""
+
 
 # --- AUTHENTICATION SCREEN ---
 def show_auth_page():
@@ -241,7 +244,6 @@ def render_rag_page():
                     context_str = "\n\n---\n\n".join(retrieved_chunks)
                     st.code(context_str, language="text")
 
-                    # Generate RAG response
                     st.subheader("RAG Answer")
                     rag_prompt = [
                         {"role": "system", "content": "You are a precise QA bot. Answer the question ONLY using the provided context chunks."},
@@ -250,6 +252,114 @@ def render_rag_page():
                     
                     res = client.chat.completions.create(model=MODEL, messages=rag_prompt)
                     st.write(res.choices[0].message.content)
+
+
+# --- PAGE 3: CALCULATOR WITH MATHEMATICAL KEYBOARD ---
+def render_calculator_page():
+    st.title("Scientific Calculator 🧮")
+    st.caption("Enter math expressions via typing or using the mathematical keyboard buttons below.")
+
+    # Display Expression Input
+    expr = st.text_input("Expression:", value=st.session_state.calc_input, key="calc_display")
+    st.session_state.calc_input = expr
+
+    # Helper function to append button text
+    def append_val(val):
+        st.session_state.calc_input += str(val)
+        st.rerun()
+
+    def clear_val():
+        st.session_state.calc_input = ""
+        st.rerun()
+
+    def backspace():
+        st.session_state.calc_input = st.session_state.calc_input[:-1]
+        st.rerun()
+
+    # Mathematical Keyboard Layout
+    st.subheader("Mathematical Keyboard")
+    
+    # Row 1: Trigonometric & Logarithmic
+    r1_col1, r1_col2, r1_col3, r1_col4, r1_col5, r1_col6 = st.columns(6)
+    r1_col1.button("sin", on_click=append_val, args=("sin(",), use_container_width=True)
+    r1_col2.button("cos", on_click=append_val, args=("cos(",), use_container_width=True)
+    r1_col3.button("tan", on_click=append_val, args=("tan(",), use_container_width=True)
+    r1_col4.button("log", on_click=append_val, args=("log(",), use_container_width=True)
+    r1_col5.button("ln", on_click=append_val, args=("ln(",), use_container_width=True)
+    r1_col6.button("√", on_click=append_val, args=("sqrt(",), use_container_width=True)
+
+    # Row 2: Powers & Constants
+    r2_col1, r2_col2, r2_col3, r2_col4, r2_col5, r2_col6 = st.columns(6)
+    r2_col1.button("x²", on_click=append_val, args=("**2",), use_container_width=True)
+    r2_col2.button("xⁿ", on_click=append_val, args=("**",), use_container_width=True)
+    r2_col3.button("π", on_click=append_val, args=("pi",), use_container_width=True)
+    r2_col4.button("e", on_click=append_val, args=("e",), use_container_width=True)
+    r2_col5.button("(", on_click=append_val, args=("(",), use_container_width=True)
+    r2_col6.button(")", on_click=append_val, args=(")",), use_container_width=True)
+
+    # Row 3: Numbers 7-9 & Basic Operators
+    r3_col1, r3_col2, r3_col3, r3_col4, r3_col5, r3_col6 = st.columns(6)
+    r3_col1.button("7", on_click=append_val, args=("7",), use_container_width=True)
+    r3_col2.button("8", on_click=append_val, args=("8",), use_container_width=True)
+    r3_col3.button("9", on_click=append_val, args=("9",), use_container_width=True)
+    r3_col4.button("÷", on_click=append_val, args=("/",), use_container_width=True)
+    r3_col5.button("DEL", on_click=backspace, use_container_width=True)
+    r3_col6.button("CLEAR", on_click=clear_val, use_container_width=True)
+
+    # Row 4: Numbers 4-6 & Multiplication
+    r4_col1, r4_col2, r4_col3, r4_col4, r4_col5, r4_col6 = st.columns(6)
+    r4_col1.button("4", on_click=append_val, args=("4",), use_container_width=True)
+    r4_col2.button("5", on_click=append_val, args=("5",), use_container_width=True)
+    r4_col3.button("6", on_click=append_val, args=("6",), use_container_width=True)
+    r4_col4.button("×", on_click=append_val, args=("*",), use_container_width=True)
+    r4_col5.button("x!", on_click=append_val, args=("factorial(",), use_container_width=True)
+    r4_col6.button("abs", on_click=append_val, args=("abs(",), use_container_width=True)
+
+    # Row 5: Numbers 1-3 & Subtraction
+    r5_col1, r5_col2, r5_col3, r5_col4, r5_col5, r5_col6 = st.columns(6)
+    r5_col1.button("1", on_click=append_val, args=("1",), use_container_width=True)
+    r5_col2.button("2", on_click=append_val, args=("2",), use_container_width=True)
+    r5_col3.button("3", on_click=append_val, args=("3",), use_container_width=True)
+    r5_col4.button("-", on_click=append_val, args=("-",), use_container_width=True)
+    r5_col5.write("")
+    r5_col6.write("")
+
+    # Row 6: 0, Decimal, Addition & Solve
+    r6_col1, r6_col2, r6_col3, r6_col4, r6_col5, r6_col6 = st.columns(6)
+    r6_col1.button("0", on_click=append_val, args=("0",), use_container_width=True)
+    r6_col2.button(".", on_click=append_val, args=(".",), use_container_width=True)
+    r6_col3.button("+", on_click=append_val, args=("+",), use_container_width=True)
+    solve_clicked = r6_col4.button("=", type="primary", use_container_width=True)
+
+    st.divider()
+
+    # Calculation Execution
+    if solve_clicked or st.button("Calculate Result", type="primary"):
+        if not st.session_state.calc_input:
+            st.warning("Please enter a mathematical expression.")
+        else:
+            try:
+                # Safe evaluation namespace mapping
+                allowed_scope = {
+                    "sin": math.sin,
+                    "cos": math.cos,
+                    "tan": math.tan,
+                    "log": math.log10,
+                    "ln": math.log,
+                    "sqrt": math.sqrt,
+                    "pi": math.pi,
+                    "e": math.e,
+                    "factorial": math.factorial,
+                    "abs": abs,
+                }
+                
+                result = eval(st.session_state.calc_input, {"__builtins__": None}, allowed_scope)
+                
+                st.subheader("Result")
+                st.success(f"**{st.session_state.calc_input}** = **{result}**")
+                
+            except Exception as err:
+                st.error(f"Invalid Expression: {err}")
 
 
 # --- NAVIGATION & SIDEBAR ---
