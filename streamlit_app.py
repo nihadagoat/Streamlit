@@ -345,6 +345,7 @@ def render_calculator_page():
     solve_clicked = r6_col4.button("=", type="primary", use_container_width=True)
 
     st.divider()
+    st.rerun()
 
     if solve_clicked or st.button("Calculate Result", type="primary"):
         if not st.session_state.calc_input:
